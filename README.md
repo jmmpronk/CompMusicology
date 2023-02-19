@@ -4,3 +4,7 @@ This is the repository that I will be using during the course Computational Musi
 I choose this corpus because a lot of my music interest lies within this time period. I think that specifically rock music is an interesting topic to look at, because it goes trough many transformations and peaks during this time period. To produce representative data I have chosen one specific genre, as not to compare different genres. As I have only included the most popular bands by sales, many influential and important rock bands will be missing in this corpus.
 
 The albums of these bands include some more generally less popular, atypical track such as 'I Am The Walrus' by The Beatles, which has a very unconventional song structure. This corpus also includes many experimental songs from Pink Floyd, like 'On The Run' or 'A Spanish Piece'. I expect that the music in this corpus becomes more experimental and electric as time progresses, away from the more simple, straightforward style of the early 60s. Also, later more sub-genres of rock will appear like metal and progressive rock.
+
+![Acousticness](https://user-images.githubusercontent.com/94113974/219980688-98fad780-7919-4c3e-accc-74a49eadfdae.png)
+
+![Energy-Valence](https://user-images.githubusercontent.com/94113974/219980695-2e249687-aa0f-45e4-ae20-97b2adf46934.png)
