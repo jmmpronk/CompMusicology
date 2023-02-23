@@ -74,3 +74,10 @@ corpus |> ggplot(aes(x = valence, y = energy, fill = country, color = country)) 
 
 corpus_per_band |> ggplot(aes(x = meanValence, y = meanEnergy, color=band, fill = band)) + geom_point(shape = 23, size = 4, alpha=0.5) + theme_tufte() + xlim(0, 1) + ylim(0, 1)
 
+selection <- aerosmith %>%
+  filter(valence < 0.1, energy > 0.9)
+
+reqd <- as.vector(c("track.id"))
+
+Result <- selection[,reqd]
+Result
