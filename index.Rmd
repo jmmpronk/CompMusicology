@@ -1,5 +1,5 @@
 ---
-title: "What makes a song timeless?"
+title: "The British-American Rock Divide of the 1970s"
 author: "Jonas Pronk"
 date: "`r Sys.Date()`"
 output: 
