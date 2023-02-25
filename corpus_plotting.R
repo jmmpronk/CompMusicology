@@ -66,16 +66,16 @@ ngroups <- length(unique(count_group$group))
 
 
 corpus |>
-  ggplot(aes(x = acousticness, fill = band)) +
-  geom_histogram(aes(y = ..density..), binwidth = 0.1) +
+  ggplot(aes(x = track.duration_ms, fill = band)) +
+  geom_histogram(aes(y = ..density..), bins = 10) +
   facet_wrap(~country) + scale_fill_manual(values = cols(ngroups))
 
 corpus |> ggplot(aes(x = valence, y = energy, fill = country, color = country)) + geom_point(alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_smooth()
 
 corpus_per_band |> ggplot(aes(x = meanValence, y = meanEnergy, color=band, fill = band)) + geom_point(shape = 23, size = 4, alpha=0.5) + theme_tufte() + xlim(0, 1) + ylim(0, 1)
 
-selection <- aerosmith %>%
-  filter(valence < 0.1, energy > 0.9)
+selection <- pink_floyd %>%
+  filter(valence < 0.1, energy < 0.1)
 
 reqd <- as.vector(c("track.id"))
 
