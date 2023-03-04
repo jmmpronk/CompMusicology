@@ -52,6 +52,8 @@ corpus <-
     us |> mutate(country = "US")
   )
 
+corpus
+
 corpus_per_band <- corpus %>%
   group_by(band) %>%
   summarize(meanEnergy = mean(energy), meanValence = mean(valence))
