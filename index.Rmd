@@ -134,9 +134,11 @@ What can be concluded from this plot is that American bands seem to prefer elect
 ### Who brings the positive vibes?
 
 ```{r EnergyValence, echo=FALSE}
-CountryEnergy <- ggplot(corpus, aes(x = valence, y = energy, fill = country, color = country, text = track.name)) + geom_point(alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_smooth()
-
-
+newtemp <- list()
+for ( i in 1:nrow(corpus)) {
+newtemp[[i]] <- corpus$track.artists[[i]]$name
+}
+CountryEnergy <- ggplot(corpus, aes(x = valence, y = energy, fill = country, color = country, text = paste(newtemp, '<br>', track.name))) + geom_point(alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_smooth()
 ggplotly(CountryEnergy)
 ```
 
