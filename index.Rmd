@@ -63,8 +63,59 @@ corpus <-
   bind_rows(
     uk |> mutate(country = "UK"),
     us |> mutate(country = "US")
-  )
+  ) %>%
+  filter(track.duration_ms > 40000)
 ```
+
+### The most average song
+
+
+```{r Hey Jude, echo=FALSE}
+Jude <-
+  get_tidy_audio_analysis("0aym2LBJBk9DAYuHHutrIl") |> 
+  compmus_align(bars, segments) |>                     
+  select(bars) |>                                      
+  unnest(bars) |>                                      
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "rms", norm = "euclidean"             
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+          compmus_summarise, timbre,
+          method = "rms", norm = "euclidean"             
+      )
+  )
+
+Jude |>
+  compmus_self_similarity(pitches, "cosine") |> 
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
+    )
+  ) +
+  geom_tile() +
+  coord_fixed() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_classic() +
+  labs(x = "", y = "")
+```
+
+
+***
+
+By averaging the energy and valence per country, we can give a measure for what the most average song is. By doing this it appears that for the United Kingdom "Hey Jude" is a good representation of what a British song sounds like (see page "Who brings the positive vibes?" for visualization). To investigate it further I've included a chroma-based self-similarity matrix of this song.
+
+In this matrix, you can clearly see the verse-bridge structure going up to about 200 seconds. After this it moves to the coda, as the phrase "Na-na-na-na, Hey Jude" is continuously repeated until the end.
+
 
 ### Rock across the pond
 
@@ -134,15 +185,21 @@ What can be concluded from this plot is that American bands seem to prefer elect
 ### Who brings the positive vibes?
 
 ```{r EnergyValence, echo=FALSE}
+corpus_per_country <- corpus %>%
+  group_by(country) %>%
+  summarize(meanEnergy = mean(energy), meanValence = mean(valence))
+
 newtemp <- list()
 for ( i in 1:nrow(corpus)) {
 newtemp[[i]] <- corpus$track.artists[[i]]$name
 }
-CountryEnergy <- ggplot(corpus, aes(x = valence, y = energy, fill = country, color = country, text = paste(newtemp, '<br>', track.name))) + geom_point(alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_smooth()
-ggplotly(CountryEnergy)
+CountryAverage <- ggplot() + geom_point(data = corpus, aes(x = valence, y = energy, fill = country, color = country, text = paste(newtemp, '<br>', track.name)), alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_point(data=corpus_per_country, aes(x = meanValence, y=meanEnergy, color = country, text=country), shape=1, size = 5)
+ggplotly(CountryAverage)
 ```
 
 ***
 
 What is interesting about this plot is that for most levels of valence, American songs tend to have a higher energy level. For the most positive songs however, this relationship seems to flip as the highest energy and highest valence songs are mostly British.
+
+In the plot, I've also shown the average for both countries. As you can see, the song "Hey Jude" by the Beatles seems to be the closest to the national mean for the United kingdom. For the United States there is no song that really comes close to the national average.
 

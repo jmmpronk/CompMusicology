@@ -3,6 +3,7 @@ library(spotifyr)
 library(dplyr)
 library(ggthemes)
 library(pals)
+library(plotly)
 
 the_beatles <- get_playlist_audio_features("", "37i9dQZF1DZ06evO2iBPiw")
 
@@ -52,10 +53,14 @@ corpus <-
     us |> mutate(country = "US")
   )
 
-corpus
+corpus_filtered <- corpus %>%
+  select(band, country, track.duration_ms, track.album.release_date, energy, valence, track.name) %>%
+  filter(track.duration_ms > 40000)
 
-corpus_per_band <- corpus %>%
-  group_by(band) %>%
+corpus_filtered
+
+corpus_per_country <- corpus %>%
+  group_by(country) %>%
   summarize(meanEnergy = mean(energy), meanValence = mean(valence))
 
 count_group <- data.frame(user=factor(rep(1:50, 2)), 
@@ -72,9 +77,12 @@ corpus |>
   geom_histogram(aes(y = ..density..), bins = 10) +
   facet_wrap(~country) + scale_fill_manual(values = cols(ngroups))
 
-corpus |> ggplot(aes(x = valence, y = energy, fill = country, color = country)) + geom_point(alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_smooth()
-
-corpus_per_band |> ggplot(aes(x = meanValence, y = meanEnergy, color=band, fill = band)) + geom_point(shape = 23, size = 4, alpha=0.5) + theme_tufte() + xlim(0, 1) + ylim(0, 1)
+newtemp <- list()
+for ( i in 1:nrow(corpus)) {
+  newtemp[[i]] <- corpus$track.artists[[i]]$name
+}
+CountryEnergy <- ggplot() + geom_point(data = corpus_filtered, aes(x = valence, y = energy, fill = country, color = country, text = paste(newtemp, '<br>', track.name)), alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_point(data=corpus_per_country, aes(x = meanValence, y=meanEnergy, color = country, text=country), shape=1, size = 5)
+ggplotly(CountryEnergy)
 
 selection <- pink_floyd %>%
   filter(valence < 0.1, energy < 0.1)
