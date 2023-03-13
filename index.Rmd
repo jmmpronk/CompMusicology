@@ -1,97 +1,409 @@
 ---
-title: "The British-American Rock Divide of the 1970s"
+title: "The Musical Legacy of The Beatles: Post-Breakup Analysis"
 author: "Jonas Pronk"
 date: "`r Sys.Date()`"
 output: 
   flexdashboard::flex_dashboard:
     storyboard: true
+    vertical_layout: scroll
     theme: cerulean
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(flexdashboard)
 library(tidyverse)
 library(spotifyr)
 library(dplyr)
 library(ggthemes)
-library(compmus)
-library(pals)
 library(plotly)
+library(compmus)
 ```
 
-```{r data import, include=FALSE}
-the_beatles <- get_playlist_audio_features("", "37i9dQZF1DZ06evO2iBPiw")
+```{r corpus import, include=FALSE}
+the_beatles <- get_playlist_audio_features("", "65f0TujpV62AXdxhsHUmxL")
 
-led_zeppelin <- get_playlist_audio_features("", "37i9dQZF1DZ06evO1NyWWI")
+paul <- get_playlist_audio_features("", "26xAfWZDMKPNq7zVueI2cY")
 
-queen <- get_playlist_audio_features("", "37i9dQZF1DZ06evO0ENBD2")
+john <- get_playlist_audio_features("", "2HcN3ccihfSaklcKuqOrcZ")
 
-pink_floyd <- get_playlist_audio_features("", "37i9dQZF1DZ06evO07zaak")
+george <- get_playlist_audio_features("", "19Z7a1EGtwkjKFz0FSIt5Q")
 
-the_rolling_stones <- get_playlist_audio_features("", "37i9dQZF1DZ06evO19s0CZ")
+ringo <- get_playlist_audio_features("", "40GAJB3mt1YjUJgKJD5bk3")
 
-eagles <- get_playlist_audio_features("", "37i9dQZF1DZ06evO0jXJRu")
+corpus <- get_playlist_audio_features("", "0N5Ff6aYzCWGMsEVkcYTKK")
 
-aerosmith <- get_playlist_audio_features("", "37i9dQZF1DZ06evO4x3X2w")
-
-bon_jovi <- get_playlist_audio_features("", "37i9dQZF1DZ06evO3154GY")
-
-the_doors <- get_playlist_audio_features("", "37i9dQZF1DZ06evO19UBIk")
-
-lynyrd_skynyrd <- get_playlist_audio_features("", "37i9dQZF1DZ06evO2ObHwc")
-
-uk <-
+combined <-
   bind_rows(
     the_beatles |> mutate(band = "The Beatles"),
-    led_zeppelin |> mutate(band = "Led Zeppelin"),
-    queen |> mutate(band = "Queen"),
-    pink_floyd |> mutate(band = "Pink Floyd"),
-    the_rolling_stones |> mutate(band = "The Rolling Stones")
-  )
-
-us <-
-  bind_rows(
-    eagles |> mutate(band = "Eagles"),
-    aerosmith |> mutate(band = "Aerosmith"),
-    bon_jovi |> mutate(band = "Bon Jovi"),
-    the_doors |> mutate(band = "The Doors"),
-    lynyrd_skynyrd |> mutate(band = "Lynyrd Skynyrd")
-  )
-
-corpus <-
-  bind_rows(
-    uk |> mutate(country = "UK"),
-    us |> mutate(country = "US")
+    paul |> mutate(band = "Paul McCartney"),
+    john |> mutate(band = "John Lennon"),
+    george |> mutate(band = "George Harrison"),
+    ringo |> mutate(band = "Ringo Starr")
   ) %>%
-  filter(track.duration_ms > 40000)
+  filter(track.duration_ms > 40000) %>%
+  mutate(mode = ifelse(mode == 0, "Minor", "Major"))
+
+combined
+
+by_album <- combined %>%
+  group_by(band, track.album.id, date = track.album.release_date) %>%
+  summarize(MeanValence = mean(valence), MeanLoudness = mean(loudness), tot_songs = n())
+by_album
 ```
 
-### The most average song
+Comparing The Beatles before and after breakup 
+=========================================
 
+Column {data-width=750}
+-------------------------------------
+### Introduction
 
-```{r Hey Jude, echo=FALSE}
-Jude <-
-  get_tidy_audio_analysis("0aym2LBJBk9DAYuHHutrIl") |> 
-  compmus_align(bars, segments) |>                     
-  select(bars) |>                                      
-  unnest(bars) |>                                      
+#### What is my Corpus?
+The breakup of The Beatles was one of the most impactful events in music history, but after all the success they had in the 60's it paved the way for all the individual members to pursuit a solo career. They each had varying levels of success, but all produced some big hits.
+My Corpus consists of all music from The Beatles and their (former) members from th 1963 all the way until 1993. During this course I hope to investigate how each Beatles member evolved their music styles after the breakup, and how that style compares to the music they made when they were still together. 
+
+#### Why did I choose this topic?
+I choose this corpus as The Beatles is maybe the most successful band of all time, while still being relatively popular today. Although the individual members never got the same success, they were still very popular which means the success of The Beatles can not by attributed to one individual member.
+I thought this would be an interesting research topic as one of the main reasons for the breakup was a disagreement in musical direction and songwriting. By looking at the difference after the breakup we can determine if the disagreements indeed led to noticeable differences in their respective music production post-breakup. I expect the music from Paul McCartney and John Lennon the differ the least, as they did most of the songwriting in The Beatles. George Harrison was influenced by Indian classical music, that is why I expect him the deviate the most from The Beatles music. 
+
+### General Info
+
+```{r corpus in numbers, echo=FALSE}
+songs <- ggplot(combined, aes(x = band, fill = band)) + geom_bar() + scale_fill_brewer(palette = "Set1")+ theme_tufte() + theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ylab("Songs") + xlab("Band/Artist") + facet_wrap(~mode)
+songs
+```
+
+### Typical/Atypical Tracks and Further Info
+
+Some atypical tracks include "Helter Skelter" by The Beatles, which is sometimes considered the first Heavy Metal song, "Temporary Secretary" by Paul McCartney featuring unique electronic sounds and "No Time Or Space", which is a 25 minute song instrumental song by George Harrison.
+
+There are some albums not included because they are not available on Spotify. This especial affects the amount of Ringo Starr songs in this Corpus, but he is still represented by 7 albums. I've excluded albums after 1993 and live albums as it is hard to make a meaningful comparison with songs from these albums.
+
+Column {data-width=250}
+-------------------------------------
+### Corpus
+
+```{=html}
+<iframe src="https://open.spotify.com/embed/playlist/0N5Ff6aYzCWGMsEVkcYTKK?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
+```
+
+Timeline of Development 
+=========================================
+
+Column {data-width=400}
+-------------------------------------
+### Text
+#### Positivity trougout the years
+In the plot on the right you can see the mean valence of every album released by The Beatles or one of their members up till 1963. The size of the dots correspond to the amount of songs on that album. What is interesting about this plot is that the valence decreased following almost all albums released by The Beatles. This is not surprising as their earlier repertoire consisted mostly of simple love songs, but became more and more serious and experimental as the band developed. 
+
+From all the former members Ringo Starr had the most uplifting songs on average, but the most positive album, excluding The Beatles, is the John Lennon album "Rock'N'Roll".
+
+#### Loudness
+Although globally their has been a general trend towards more loud music, The Beatles have since their breakup not increased the loudness significantly. Ringo Starr has again the least loud albums on average, however his last album in this corpus is also the loudest of them all. This is the album "Time Takes Time" released in 1992.
+
+the two albums by George Harrison around 1970 are two instrumental albums, which were largely influenced by classical indian music. These were both released in the time that The Beatles were still together. 
+
+Column {data-width=600}
+-------------------------------------
+
+### Chart 1: Valence
+
+```{r timeline valence, echo=FALSE}
+album_date <- ggplot(by_album, aes(x = date, y = MeanValence, group = band, color = band)) + geom_line() + geom_point(aes(size = tot_songs)) + theme_tufte() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ggplotly(album_date)
+```
+
+### Chart 2: Loudness
+
+```{r timeline loudness, echo=FALSE}
+album_date <- ggplot(by_album, aes(x = date, y = MeanLoudness, group = band, color = band)) + geom_line() + geom_point(aes(size = tot_songs)) + theme_tufte() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ggplotly(album_date)
+```
+
+Key{data-orientation=rows}
+=========================================
+Row {data-height = 380}
+-------------------------------------
+### Text
+Here you can see which proportion of each band uses each key. George Harrison seems to make more use of the B major and F# major keys relative to the other band members. Paul McCartney has a pretty even relative distribution over all keys, while Ring Starr makes great use of A# major and G# major.
+
+below if included the chordogram of two songs written by John Lennon. One is his most successful song of his solo career, "Imagine", which is a soft, hopeful song. The other is his most successful song written during his time at The Beatles, "Come Together". This song is a protest song against the Vietnam war.
+
+The song "Imagine" is in the C key according to the Spotify API. This seems to correspond with the chordogram, as the most common cords seem to be C major, E minor, G major and F major. It looks like there is also some spillover into C minor and F minor.
+
+The chordogram for "Come together" looks a lot more chaotic. According to Spotify it is the A key. For this song it is harder to pinpoint the common chords. Although D minor and D major look most frequent. This would seem a bit weird in combination with the A key, but there could again be some spillover. After the 200 second mark there or no real matches for the cords. This part of the chordogram corresponds to a part in the song consisting mostly of drums.
+
+### Key Mode
+```{r key, echo=FALSE}
+band_keys <- ggplot(combined, aes(x = key_mode, fill = band)) + geom_bar(position = "fill") + scale_fill_brewer(palette = "Set1") + theme_tufte() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("key") + ylab("proportion")
+band_keys
+```
+
+Row
+-------------------------------------
+```{r Chordogram, include=FALSE}
+circshift <- function(v, n) {
+  if (n == 0) v else c(tail(v, n), head(v, -n))
+}
+
+#      C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B
+major_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
+minor_chord <-
+  c(   1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
+seventh_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
+
+major_key <-
+  c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+  c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+chord_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:7", circshift(seventh_chord, 6),
+    "Gb:maj", circshift(major_chord, 6),
+    "Bb:min", circshift(minor_chord, 10),
+    "Db:maj", circshift(major_chord, 1),
+    "F:min", circshift(minor_chord, 5),
+    "Ab:7", circshift(seventh_chord, 8),
+    "Ab:maj", circshift(major_chord, 8),
+    "C:min", circshift(minor_chord, 0),
+    "Eb:7", circshift(seventh_chord, 3),
+    "Eb:maj", circshift(major_chord, 3),
+    "G:min", circshift(minor_chord, 7),
+    "Bb:7", circshift(seventh_chord, 10),
+    "Bb:maj", circshift(major_chord, 10),
+    "D:min", circshift(minor_chord, 2),
+    "F:7", circshift(seventh_chord, 5),
+    "F:maj", circshift(major_chord, 5),
+    "A:min", circshift(minor_chord, 9),
+    "C:7", circshift(seventh_chord, 0),
+    "C:maj", circshift(major_chord, 0),
+    "E:min", circshift(minor_chord, 4),
+    "G:7", circshift(seventh_chord, 7),
+    "G:maj", circshift(major_chord, 7),
+    "B:min", circshift(minor_chord, 11),
+    "D:7", circshift(seventh_chord, 2),
+    "D:maj", circshift(major_chord, 2),
+    "F#:min", circshift(minor_chord, 6),
+    "A:7", circshift(seventh_chord, 9),
+    "A:maj", circshift(major_chord, 9),
+    "C#:min", circshift(minor_chord, 1),
+    "E:7", circshift(seventh_chord, 4),
+    "E:maj", circshift(major_chord, 4),
+    "G#:min", circshift(minor_chord, 8),
+    "B:7", circshift(seventh_chord, 11),
+    "B:maj", circshift(major_chord, 11),
+    "D#:min", circshift(minor_chord, 3)
+  )
+
+key_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:maj", circshift(major_key, 6),
+    "Bb:min", circshift(minor_key, 10),
+    "Db:maj", circshift(major_key, 1),
+    "F:min", circshift(minor_key, 5),
+    "Ab:maj", circshift(major_key, 8),
+    "C:min", circshift(minor_key, 0),
+    "Eb:maj", circshift(major_key, 3),
+    "G:min", circshift(minor_key, 7),
+    "Bb:maj", circshift(major_key, 10),
+    "D:min", circshift(minor_key, 2),
+    "F:maj", circshift(major_key, 5),
+    "A:min", circshift(minor_key, 9),
+    "C:maj", circshift(major_key, 0),
+    "E:min", circshift(minor_key, 4),
+    "G:maj", circshift(major_key, 7),
+    "B:min", circshift(minor_key, 11),
+    "D:maj", circshift(major_key, 2),
+    "F#:min", circshift(minor_key, 6),
+    "A:maj", circshift(major_key, 9),
+    "C#:min", circshift(minor_key, 1),
+    "E:maj", circshift(major_key, 4),
+    "G#:min", circshift(minor_key, 8),
+    "B:maj", circshift(major_key, 11),
+    "D#:min", circshift(minor_key, 3)
+  )
+```
+
+### Chordogram 1: Imagine
+```{r imagine, echo=FALSE}
+imagine <-
+  get_tidy_audio_analysis("7pKfPomDEeI4TPT6EOYjn9") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
   mutate(
     pitches =
       map(segments,
           compmus_summarise, pitches,
-          method = "rms", norm = "euclidean"             
+          method = "mean", norm = "manhattan"
+      )
+  )
+
+imagine |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if descired
+    method = "cosine",  # Try different distance metrics
+    norm = "euclidean"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "")
+```
+
+### Chordogram 2: Come Together
+```{r come together, echo=FALSE}
+imagine <-
+  get_tidy_audio_analysis("2EqlS6tkEnglzr7tkKAAYD") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "mean", norm = "manhattan"
+      )
+  )
+
+imagine |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if descired
+    method = "cosine",  # Try different distance metrics
+    norm = "euclidean"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "")
+```
+
+Chromagram
+=========================================
+
+Column {data-width=400}
+-------------------------------------
+### Text
+On this page i've included the chromagram of two more unusual songs. One written by John Lennon during his time at the Beatles: "I Am The Walrus". This song is full of nonsensical lyrics.
+
+The second is by Paul McCartney when he was part of Wings. "Band on The Run" is one of the more popular songs by Paul McCartney after the breakup. Because most members had left the band by the time of recording this song, Paul played bass, drums and most of the guitar parts.
+
+The chromagram of "I Am The Walrus", is a bit all over the place. The most common pitch seems to be A, but there is little structure to the pitches.
+
+The chromagram of "Band On the Run" has a lot more structure to it. Especially in the beginning when the G and D pitch are most dominant. it is this intro with less intruments involved that the different pitches are the clearest.
+
+Column
+-------------------------------------
+### Chromagram 1: I Am The Walrus
+```{r I Am The Walrus, echo=FALSE}
+HS <-
+  get_tidy_audio_analysis("6Pq9MmkDQYZiiCDpxnvrf6") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+HS |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+```
+
+### Chromagram 2: Band On The Run
+```{r Band On The Run, echo=FALSE}
+HS <-
+  get_tidy_audio_analysis("1H4idkmruFoJBg1DvUv2tY") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+HS |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+```
+
+Column {data-width=250}
+-------------------------------------
+### I Am The Walrus
+```{=html}
+<iframe src="https://open.spotify.com/embed/track/6Pq9MmkDQYZiiCDpxnvrf6?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
+```
+
+### Band On The Run
+```{=html}
+<iframe src="https://open.spotify.com/embed/track/1H4idkmruFoJBg1DvUv2tY?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
+```
+
+Chroma & Timbre Matrices
+=========================================
+
+Column {data-width=400}
+-------------------------------------
+### Text
+On the right are the self-similarity matrices of the pitches of two songs written by George Harrison. Both are calmer, well structured songs, which makes them interesting to compare. "Here Comes The Sun" is the Beatles song with the most streams on spotify. "My Sweet Lord" is Harrison's most popular song from his solo career.
+
+In "Here Comes The Sun" their are some short repetitions going on up until 90 seconds in. After that comes a short part repeating many times over, supported by the lyrics: "Sun, sun, sun, here it comes". The yellow cross that can be seen around 130 seconds is an instrumental part on the guitar.
+
+"My Sweet lord" has a very different structure, with the song being separated in two distinct blocks. The first block being an extended introduction and the second block following a subtle shift in key from E major to F# major (my corpus contains two versions of this song, according to Spotify one is in the F# key and one in C#). It is hard to determine what the cross pattern in the matrix corresponds with.
+
+Column
+-------------------------------------
+### Self-Similarity Matrix 1: Here Comes The Sun
+```{r Here Comes The Sun, echo=FALSE}
+HCS <-
+  get_tidy_audio_analysis("6dGnYIeXmHdcikdzNNDMm2") |> # Change URI.
+  compmus_align(bars, segments) |>                     # Change `bars`
+  select(bars) |>                                      #   in all three
+  unnest(bars) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "rms", norm = "euclidean"              # Change summary & norm.
       )
   ) |>
   mutate(
     timbre =
       map(segments,
           compmus_summarise, timbre,
-          method = "rms", norm = "euclidean"             
+          method = "rms", norm = "euclidean"              # Change summary & norm.
       )
   )
 
-Jude |>
+HCS |>
   compmus_self_similarity(pitches, "cosine") |> 
   ggplot(
     aes(
@@ -109,97 +421,54 @@ Jude |>
   labs(x = "", y = "")
 ```
 
+### Self-Similarity Matrix 2: My Sweet Lord
+```{r My Sweet Lord, echo=FALSE}
+MSL <-
+  get_tidy_audio_analysis("6vE90mi4yKsQGY3YD2OOv1") |> # Change URI.
+  compmus_align(bars, segments) |>                     # Change `bars`
+  select(bars) |>                                      #   in all three
+  unnest(bars) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+          compmus_summarise, timbre,
+          method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  )
 
-***
-
-By averaging the energy and valence per country, we can give a measure for what the most average song is. By doing this it appears that for the United Kingdom "Hey Jude" is a good representation of what a British song sounds like (see page "Who brings the positive vibes?" for visualization). To investigate it further I've included a chroma-based self-similarity matrix of this song.
-
-In this matrix, you can clearly see the verse-bridge structure going up to about 200 seconds. After this it moves to the coda, as the phrase "Na-na-na-na, Hey Jude" is continuously repeated until the end.
-
-
-### Rock across the pond
-
-
-This is the repository that I will be using during the course Computational Musicology, in which the analysis into my corpus will be visible. My corpus is made up of popular rock music from the 70s from the UK and the USA. To compare the two regions I made a selection of five British and five American bands who were popular during this time period. This selection came down to The Beatles, The Rolling stones, Queen, Led Zeppelin and Pink Floyd for the British bands, and Eagles, Aerosmith, Bon Jovi, The Doors and Lynyrd Skynyrd for the American bands. During this course I hope to dive deeper into the effect that the geographic region had on the genre of rock. To achieve this I will be looking at elements such as acousticness, valence, energy, rhythm, and timbre.
-One potential area of investigation is the musical influences that shaped the sound of British and American rock bands during this time period. For example, British bands like Led Zeppelin and The Rolling Stones were heavily influenced by blues and folk music, while American bands like the Eagles and Lynyrd Skynyrd drew on country and southern rock influences. There is also a notable difference in popularity between the two regions. Four of the five British bands are in the top 10 of all time when it comes to album sales, whereas there are no American bands from this time period present.
-
-
-I choose this corpus because a lot of my music interest lies within this time period. I think that specifically rock music is an interesting genre to look at, because it peaks during this time period. To produce representative data I have chosen one specific genre, as not to compare different genres. As I have only included the most popular bands, many influential and important rock bands will be missing in this corpus.
-
-
-### The wall of chromas
-
-```{r The Wall, echo=FALSE}
-Wall <-
-  get_tidy_audio_analysis("7K6xMPtAjTuLPNlJMLf5bS") |>
-  select(segments) |>
-  unnest(segments) |>
-  select(start, duration, pitches)
-
-Wall |>
-  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
-  compmus_gather_chroma() |> 
+MSL |>
+  compmus_self_similarity(pitches, "cosine") |> 
   ggplot(
     aes(
-      x = start + duration / 2,
-      width = duration,
-      y = pitch_class,
-      fill = value
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
     )
   ) +
   geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
-  theme_minimal() +
-  scale_fill_viridis_c()
+  coord_fixed() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_classic() +
+  labs(x = "", y = "")
 ```
 
-***
-
-Using the data from the corpus, I've identified a few outliers. Of all the songs in the corpus there were only two songs that scored lower than 0.1 on both energy and valence, those songs were the Pink Floyd songs "Another Brick in the Wall, Pt. 1" and "One of the Few". As for American outliers, the Aerosmith song "Young Lust" scores very high on energy and low on valence, something which goes in against the overall trend.
-
-I've decided to focus a little more on the song "Another Brick in the Wall, Pt. 1", because of the importance it has in Pink Floyds repertoire. On the left you can see an chromagram of the song. The short intensity in the G key around 50 seconds in the track seems to correspond to a instrumental part on the guitar.
-
-
-### Americans love their electric guitars
-
-```{r Acousticness, echo=FALSE}
-count_group <- data.frame(user=factor(rep(1:50, 2)), 
-                          count=sample(100, 100, replace=T), 
-                          group=factor(rep(LETTERS[1:20], 5)))
-
-library(RColorBrewer)
-cols <- colorRampPalette(brewer.pal(9, "Set1"))
-ngroups <- length(unique(count_group$group))
-
-
-corpus |>
-  ggplot(aes(x = acousticness, fill = band)) +
-  geom_histogram(aes(y = ..density..), binwidth = 0.1) +
-  facet_wrap(~country) + scale_fill_manual(values = cols(ngroups))
+Column {data-width=250}
+-------------------------------------
+### Here Comes The Sun
+```{=html}
+<iframe src="https://open.spotify.com/embed/track/6dGnYIeXmHdcikdzNNDMm2?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
 ```
 
-***
-
-What can be concluded from this plot is that American bands seem to prefer electrical guitar dominated songs over British bands. Most of the low acousticness songs can be contributed to Aerosmith and Bon Jovi, while British bands seem to have a much more even distribution over different levels of acousticness.
-
-### Who brings the positive vibes?
-
-```{r EnergyValence, echo=FALSE}
-corpus_per_country <- corpus %>%
-  group_by(country) %>%
-  summarize(meanEnergy = mean(energy), meanValence = mean(valence))
-
-newtemp <- list()
-for ( i in 1:nrow(corpus)) {
-newtemp[[i]] <- corpus$track.artists[[i]]$name
-}
-CountryAverage <- ggplot() + geom_point(data = corpus, aes(x = valence, y = energy, fill = country, color = country, text = paste(newtemp, '<br>', track.name)), alpha = 0.6, shape = 21, stroke = 1) + theme_tufte() + xlim(0, 1) + ylim(0, 1) + geom_point(data=corpus_per_country, aes(x = meanValence, y=meanEnergy, color = country, text=country), shape=1, size = 5)
-ggplotly(CountryAverage)
+### My Sweet Lord
+```{=html}
+<iframe src="https://open.spotify.com/embed/track/6vE90mi4yKsQGY3YD2OOv1?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
 ```
-
-***
-
-What is interesting about this plot is that for most levels of valence, American songs tend to have a higher energy level. For the most positive songs however, this relationship seems to flip as the highest energy and highest valence songs are mostly British.
-
-In the plot, I've also shown the average for both countries. As you can see, the song "Hey Jude" by the Beatles seems to be the closest to the national mean for the United kingdom. For the United States there is no song that really comes close to the national average.
-
