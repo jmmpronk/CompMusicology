@@ -472,3 +472,51 @@ Column {data-width=250}
 ```{=html}
 <iframe src="https://open.spotify.com/embed/track/6vE90mi4yKsQGY3YD2OOv1?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
 ```
+
+Tempo
+=========================================
+Column {data-width=400}
+-------------------------------------
+### Text
+
+#### Tempograms
+On this page I've included two songs written by Paul McCartney, one at his time at the Wings and one at The Beatles. The first one is "Live And Let Die", one of the most iconic songs from his solo career. This song has some tempo changes, although Spotify seems to struggle with picking up the tempo at the start of the song. The tempo starts at around 100 BPM and moves up to 130 BPM. 
+
+The second song is "Martha My Dear". This song has a more constant tempo, however there seems to be a small change in tempo around the 40 second mark. Throughout the song it stays at 90 BPM, but Spotify also picks up something around the 130 BPM.
+
+#### Boxplot
+Below added a boxplot for all members and the median tempo of their songs. George Harrison has a really strong preference for a tempo around 120 BPM, while John Lennon likes to experiment more. I expected The Beatles to have a broader distribution of tempi as different people wrote the songs, but they do have a few outliers. These are the songs "Baby's In Black" and "Only A Northern Song".
+
+### Tempo Boxplot
+```{r tempo, echo=FALSE}
+tempo_est <- ggplot(combined, aes(x = band, y = tempo)) + geom_boxplot()
+ggplotly(tempo_est)
+```
+
+Column
+-------------------------------------
+### Tempogram: Live And Let Die
+```{r Live And Let Die, echo=FALSE}
+LLD <- get_tidy_audio_analysis("0VV8wkOM4w78A2OHZOTzNP")
+
+LLD |>
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
+
+### Tempogram: Martha My Dear
+```{r Martha My Dear, echo=FALSE}
+MMD <- get_tidy_audio_analysis("1swmf4hFMJYRNA8Rq9PVaW")
+
+MMD |>
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
