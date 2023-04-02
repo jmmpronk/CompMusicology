@@ -12,6 +12,9 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(tidymodels)
+library(ggdendro)
+library(heatmaply)
 library(spotifyr)
 library(dplyr)
 library(ggthemes)
@@ -367,7 +370,7 @@ Column {data-width=250}
 <iframe src="https://open.spotify.com/embed/track/1H4idkmruFoJBg1DvUv2tY?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowtransparency="true" allow="encrypted-media" data-external="1"></iframe>
 ```
 
-Chroma & Timbre Matrices
+Chroma Matrices
 =========================================
 
 Column {data-width=400}
@@ -480,9 +483,9 @@ Column {data-width=400}
 ### Text
 
 #### Tempograms
-On this page I've included two songs written by Paul McCartney, one at his time at the Wings and one at The Beatles. The first one is "Live And Let Die", one of the most iconic songs from his solo career. This song has some tempo changes, although Spotify seems to struggle with picking up the tempo at the start of the song. The tempo starts at around 100 BPM and moves up to 130 BPM. 
+On this page I've included two songs written by Paul McCartney, one at his time at the Wings and one at The Beatles. The first one is "Live And Let Die", one of the most iconic songs from his solo career. This song has four tempo changes, although Spotify seems to struggle with picking up the tempo at the start and end of the song. The tempo moves around between about 120 BPM and 150 BPM. After  50 seconds the song picks up pace really fast with an part that is played by an orchestra supported by heavy drums. After 2 minutes it moves back to calmer vocals. After this the orchestra repeats again.
 
-The second song is "Martha My Dear". This song has a more constant tempo, however there seems to be a small change in tempo around the 40 second mark. Throughout the song it stays at 90 BPM, but Spotify also picks up something around the 130 BPM.
+The second song is "Martha My Dear", a song from The White Album. This song has a more constant tempo, however there seems to be a small change in tempo around the 40 second mark. Throughout the song it stays at 90 BPM, but Spotify also picks up something around the 130 BPM. This song has some tempo changes on a smaller scale, too small to be noticeable on the tempogram. 
 
 #### Boxplot
 Below added a boxplot for all members and the median tempo of their songs. George Harrison has a really strong preference for a tempo around 120 BPM, while John Lennon likes to experiment more. I expected The Beatles to have a broader distribution of tempi as different people wrote the songs, but they do have a few outliers. These are the songs "Baby's In Black" and "Only A Northern Song".
@@ -520,3 +523,94 @@ MMD |>
   labs(x = "Time (s)", y = "Tempo (BPM)") +
   theme_classic()
 ```
+
+Dendrogram
+=========================================
+
+### Dendrogram
+
+```{r clustering, echo=FALSE}
+Clustering <-
+  get_playlist_audio_features("Corpus", "54D1RcqlnoOt1MPiaTZrFz") |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+
+pre_processing <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = Clustering
+  ) |>
+  step_center(all_predictors()) |>
+  step_scale(all_predictors()) |> 
+  # step_range(all_predictors()) |> 
+  prep(Clustering |> mutate(track.name = str_trunc(track.name, 20))) |>
+  juice() |>
+  column_to_rownames("track.name")
+
+corpus_dist <- dist(pre_processing, method = "euclidean")
+
+corpus_dist |> 
+  hclust(method = "average") |> # Try single, average, and complete.
+  dendro_data() |>
+  ggdendrogram()
+```
+
+### Text
+
+On the left you can see a dendrogram of the 5 most popular songs from The Beatles, john Lennon and Paul McCartney. I've made this plot to hopefully see a correlation between the songs written by either artist in their time in the Beatles and their solo career. in this dendrogram we can see three main groups. the group on the left consists of four Paul McCartney songs and one Beatles song. The middle one contains tree Lennon songs and two Beatles songs, and the one on the right has two Beatles and Lennon songs and one McCartney song. The dendrogram seems to have made two groups with music lying very close to either artist and one with a mix of the rest, which seems to have less interconnections than the other two. For this dendrogram the average cluster method was used.
+
+Heatmap
+=========================================
+
+```{r Heatmap, echo=FALSE}
+heatmaply(
+  pre_processing,
+  hclustfun = hclust,
+  hclust_method = "average",  # Change for single, average, or complete linkage.
+  dist_method = "euclidean"
+)
+```
+
+### Text
+
+The heatmap of the dendrogram shows how important each factor is when determining the clustering of the songs. From this plot we can see some interesting things, for example the instrumentalness of most songs seem to be pretty homogeneous except for three songs at the top that are all grouped together. We can thus conclude that instrumentalness probably played a big role in grouping these songs together.
+
+Conclusion
+=========================================
+
+### Conclusion
+
+From the first visualizations showing the loudness and valence throughout the years, we can see that The Beatles started writing more serious songs and the individual members largely hold on the level they reached at the end of their career together. After the breakup the members where more free to experiment and deviate more often from the mean as can be seen in the boxplot about tempo. Although as can be seen from the clustering they do retain their individual sounds. This is also something that recurs when looking at the songs that George Harrison wrote in his solo career and in the Beatles, with both songs compared with chroma-matrices being well structured songs.
+
+It is harder to determine how George Harrison and particularly Ringo Starr compare between their solo and Beatles career, as they were less involved in the writing process than Lennon and McCartney. Also the unfortunate death of Lennon in 1980 makes it harder to draw meaningful comparisons later on.
