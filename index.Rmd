@@ -524,8 +524,11 @@ MMD |>
   theme_classic()
 ```
 
-Dendrogram
+Dendrogram & Heatmap
 =========================================
+
+Column {data-width=600}
+-------------------------------------
 
 ### Dendrogram
 
@@ -586,12 +589,7 @@ corpus_dist |>
   ggdendrogram()
 ```
 
-### Text
-
-On the left you can see a dendrogram of the 5 most popular songs from The Beatles, john Lennon and Paul McCartney. I've made this plot to hopefully see a correlation between the songs written by either artist in their time in the Beatles and their solo career. in this dendrogram we can see three main groups. the group on the left consists of four Paul McCartney songs and one Beatles song. The middle one contains tree Lennon songs and two Beatles songs, and the one on the right has two Beatles and Lennon songs and one McCartney song. The dendrogram seems to have made two groups with music lying very close to either artist and one with a mix of the rest, which seems to have less interconnections than the other two. For this dendrogram the average cluster method was used.
-
-Heatmap
-=========================================
+### Heatmap
 
 ```{r Heatmap, echo=FALSE}
 heatmaply(
@@ -602,9 +600,15 @@ heatmaply(
 )
 ```
 
+Column
+-------------------------------------
+
 ### Text
 
+On the left you can see a dendrogram of the 5 most popular songs from The Beatles, john Lennon and Paul McCartney. I've made this plot to hopefully see a correlation between the songs written by either artist in their time in the Beatles and their solo career. in this dendrogram we can see three main groups. the group on the left consists of four Paul McCartney songs and one Beatles song. The middle one contains tree Lennon songs and two Beatles songs, and the one on the right has two Beatles and Lennon songs and one McCartney song. The dendrogram seems to have made two groups with music lying very close to either artist and one with a mix of the rest, which seems to have less interconnections than the other two. For this dendrogram the average cluster method was used.
+
 The heatmap of the dendrogram shows how important each factor is when determining the clustering of the songs. From this plot we can see some interesting things, for example the instrumentalness of most songs seem to be pretty homogeneous except for three songs at the top that are all grouped together. We can thus conclude that instrumentalness probably played a big role in grouping these songs together.
+
 
 Conclusion
 =========================================
